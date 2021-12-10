@@ -4,19 +4,25 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.vaca.amrplayfromnet.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
 import java.lang.Exception
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
 
-
+    val dataScope = CoroutineScope(Dispatchers.IO)
     lateinit var binding: ActivityMainBinding
     val aacDecoderUtil=AACDecoderUtil()
-
+    private val recorderThread by lazy {
+        Executors.newFixedThreadPool(100)
+    }
 
 
     lateinit  var channel: DatagramChannel
@@ -44,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    var tt=0L
     fun startListen() {
         while (true) {
             try {
@@ -52,7 +59,14 @@ class MainActivity : AppCompatActivity() {
                 val receiveByteArray=bytebuffer2ByteArray(bufReceive)
                 if (receiveByteArray != null) {
                     Log.e("fu8ck",receiveByteArray.size.toString())
-                    aacDecoderUtil.decode(receiveByteArray,0,receiveByteArray.size,0)
+
+//                    dataScope.launch {
+                        aacDecoderUtil.decode(receiveByteArray,0,receiveByteArray.size,tt)
+                       tt+=640L
+//                    }
+
+
+
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
